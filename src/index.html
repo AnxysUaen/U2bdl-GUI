@@ -81,6 +81,26 @@
                 <el-form-item label="输出路径：">
                     <el-input v-model="Save"></el-input>
                 </el-form-item>
+                <el-form-item label="关于：">
+                    <el-alert title="不可关闭的 alert" type="success" :closable="false" center>
+                        <div slot="title">
+                            本软件基于 
+                            <el-link type="primary" href="https://youtube-dl.org/" target="_blank">youtube_dl</el-link>
+                             和 
+                            <el-link type="primary" href="https://www.ffmpeg.org/" target="_blank">ffmpeg</el-link>
+                        </div>
+                    </el-alert>
+                    <el-alert title="不可关闭的 alert" type="success" :closable="false" center>
+                        <div slot="title">Github：
+                            <el-link type="primary" icon="el-icon-user" href="https://github.com/AnxysUaen/U2bdl-GUI" target="_blank">https://github.com/AnxysUaen/U2bdl-GUI</el-link>
+                        </div>
+                    </el-alert>
+                    <el-alert title="不可关闭的 alert" type="success" :closable="false" center>
+                        <div slot="title">Gitee：
+                            <el-link type="primary" icon="el-icon-user" href="https://gitee.com/AnxysUaen/U2bdl-GUI" target="_blank">https://gitee.com/AnxysUaen/U2bdl-GUI</el-link>
+                        </div>
+                    </el-alert>
+                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="dialogFormVisible = false">取 消</el-button>
