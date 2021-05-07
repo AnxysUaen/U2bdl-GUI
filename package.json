@@ -2,9 +2,10 @@
   "name": "u2bdl-gui",
   "version": "1.0.0",
   "description": "GUI for youtube_dl",
-  "main": "src/index.html",
+  "main": "index.html",
   "scripts": {
-    "start": "nw ."
+    "start": "nw /src/",
+    "build": "nwbuild --platforms win32,win64 --buildDir dist/ src/"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,8 @@
   "license": "ISC",
   "dependencies": {
     "iconv-lite": "^0.6.2"
+  },
+  "devDependencies": {
+    "nw-builder": "^3.5.7"
   }
 }
