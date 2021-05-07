@@ -4,7 +4,7 @@
   "description": "GUI for youtube_dl",
   "main": "index.html",
   "scripts": {
-    "start": "nw /src/",
+    "start": "set NODE_ENV='development' && nw ./src/",
     "build": "nwbuild --platforms win32,win64 --buildDir dist/ src/"
   },
   "repository": {

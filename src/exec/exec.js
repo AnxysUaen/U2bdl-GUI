@@ -5,7 +5,12 @@ function Download(param, callback) {
     var obj = { err: "未知错误，请查看日志", data: "" }
     return new Promise((resolve, reject) => {
         // var result = spawn('../lib/youtube-dl.exe', ['--proxy', 'https://127.0.0.1:7890', '-f', 'bestvideo+bestaudio', 'https://www.youtube.com/watch?v=8y2h6AzJs3U', '--merge-output-format', 'mp4', '--ffmpeg-location', '..\\lib\\ffmpeg.exe', '-o', 'D:\\%(title)s']);
-        var result = spawn(path.resolve(path.resolve(), 'src', 'lib', 'youtube-dl.exe'), param);
+        var result = ""
+        if (process.env.NODE_ENV == "development") {
+            result = spawn(path.resolve(path.resolve(), 'src', 'lib', 'youtube-dl.exe'), param);
+        } else {
+            result = spawn(path.resolve(path.resolve(), 'lib', 'youtube-dl.exe'), param);
+        }
         result.on('close', (code) => {
             // console.log('child process exited with code :' + code);
             if (code == 0) {
@@ -48,7 +53,7 @@ function startDownload(obj, callback) {
         if (obj.Audio && obj.Video) {
             param.push(obj.Video + "+" + obj.Audio)
             param.push("--ffmpeg-location")
-            param.push(path.resolve(path.resolve(), 'src', 'lib', 'ffmpeg.exe'))
+            param.push(process.env.NODE_ENV == "development" ? path.resolve(path.resolve(), 'src', 'lib', 'ffmpeg.exe') : path.resolve(path.resolve(), 'lib', 'ffmpeg.exe'))
             param.push("--merge-output-format")
             param.push(obj.Merge ? obj.Merge : "mp4")
         } else {

@@ -9,5 +9,8 @@
     "height": 800
   },
   "version": "1.0.0",
-  "description": "GUI for youtube_dl"
+  "description": "GUI for youtube_dl",
+  "dependencies": {
+    "iconv-lite": "^0.6.2"
+  }
 }
