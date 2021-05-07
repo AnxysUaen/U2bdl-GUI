@@ -1,0 +1,22 @@
+{
+  "name": "u2bdl-gui",
+  "version": "1.0.0",
+  "description": "GUI for youtube_dl",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "nw ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitee.com:AnxysUaen/U2bdl-GUI.git"
+  },
+  "keywords": [
+    "youtube",
+    "GUI"
+  ],
+  "author": "AnxysUaen",
+  "license": "ISC",
+  "dependencies": {
+    "iconv-lite": "^0.6.2"
+  }
+}

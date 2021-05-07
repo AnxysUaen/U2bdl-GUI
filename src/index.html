@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>U2BDL-GUI</title>
+    <link rel="stylesheet" href="./css/element.css">
+</head>
+
+<body>
+    <div id="app">
+        <el-row :gutter="0" type="flex" justify="space-between" style="margin-top: 20px;">
+            <el-col :span="18" :offset="1">
+                <el-input placeholder="在此输入youtube视频地址" v-model="Url">
+                    <el-dropdown split-button trigger="click" slot="append" placement="bottom" @click="downloadClick"
+                        @command="downloadClick" v-loading.fullscreen.lock="fullscreenLoading">
+                        下载
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="adv">高级下载</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </el-input>
+            </el-col>
+            <el-col :span="4" :pull="1" style="text-align: right;">
+                <el-button type="primary" @click="chageConfigOpen" plain>详细设置</el-button>
+            </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top: 20px;" type="flex" justify="center">
+            <el-col :span="22" style="text-align: center;">
+                <el-form :inline="true">
+                    <el-form-item label="将音视频合并为：">
+                        <el-select v-model="Merge" placeholder="请选择" :disabled="MergeIs">
+                            <el-option label="MP4" value="mp4"></el-option>
+                            <el-option label="MKV" value="mkv"></el-option>
+                            <el-option label="WEBm" value="webm"></el-option>
+                            <el-option label="FLV" value="flv"></el-option>
+                            <el-option label="OGG" value="ogg"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="PS：">
+                        只有当选择了音频+视频之后该选项才会生效
+                    </el-form-item>
+                </el-form>
+            </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top: 20px;" type="flex" justify="center">
+            <el-col :span="22">
+                <el-table :data="AudioList.List" highlight-current-row @current-change="audioHandleCurrentChange"
+                    style="width: 100%" :header-cell-style="{'text-align':'center'}"
+                    :cell-style="{'text-align':'center'}">
+                    <el-table-column property="format" label="格式" width="120"></el-table-column>
+                    <el-table-column property="rate" label="码率" width="120"></el-table-column>
+                    <el-table-column property="hz" label="采样率"></el-table-column>
+                    <el-table-column property="size" label="文件大小" width="200" align="right"></el-table-column>
+                </el-table>
+            </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top: 20px;" type="flex" justify="center">
+            <el-col :span="22">
+                <el-table :data="VideoList.List" highlight-current-row @current-change="videoHandleCurrentChange"
+                    style="width: 100%" :header-cell-style="{'text-align':'center'}"
+                    :cell-style="{'text-align':'center'}">
+                    <el-table-column property="format" label="格式" width="120"></el-table-column>
+                    <el-table-column property="rate" label="码率" width="120"></el-table-column>
+                    <el-table-column property="resolution" label="分辨率"></el-table-column>
+                    <el-table-column property="fps" label="帧率"></el-table-column>
+                    <el-table-column property="size" label="文件大小" width="200" align="right"></el-table-column>
+                </el-table>
+            </el-col>
+        </el-row>
+
+        <!-- dialog -->
+        <el-dialog title="详细设置" :close-on-click-modal="!dialogFormVisible" :visible.sync="dialogFormVisible">
+            <el-form>
+                <el-form-item label="代理配置：">
+                    <el-input placeholder="需要有http或https前缀" v-model="ProxyUrl"></el-input>
+                </el-form-item>
+                <el-form-item label="重命名为：">
+                    <el-input v-model="Name" placeholder="留空则自动生成"></el-input>
+                </el-form-item>
+                <el-form-item label="输出路径：">
+                    <el-input v-model="Save"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="chageConfig">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</body>
+<script src="./js/vue.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./exec/exec.js"></script>
+<script src="./exec/data.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            ProxyUrl: '',
+            Url: '',
+            Save: '',
+            Name: '',
+            VideoList: {
+                Checked: '',
+                List: []
+            },
+            AudioList: {
+                Checked: '',
+                List: []
+            },
+            Merge: 'mp4',
+
+            MergeIs: true,
+            fullscreenLoading: false,
+            dialogFormVisible: false,
+        },
+        mounted() {
+            this.Save = readJson('Save');
+        },
+        methods: {
+            // 点击下载
+            downloadClick(e) {
+                if (this.Url.length != 0) {
+                    reg = /[a-zA-z]+:\/\/[^\\s]*/;
+                    if (!reg.test(this.Url)) {
+                        this.$notify.error({
+                            title: '错误',
+                            message: '请正确填写地址。',
+                            position: 'bottom-right'
+                        });
+                        return
+                    }
+                } else {
+                    this.$notify.error({
+                        title: '错误',
+                        message: '请填写地址。',
+                        position: 'bottom-right'
+                    });
+                    return
+                }
+                this.fullscreenLoading = true;
+                if (e == "adv") {
+                    this.$notify.info({
+                        title: '请稍等',
+                        message: '正在获取详细列表',
+                        position: 'bottom-right'
+                    });
+                    selectDownload(this.Url, this.selectClickCallback)
+                } else {
+                    this.$notify.info({
+                        title: '开始下载',
+                        message: '文件将保存至 ' + this.Save,
+                        position: 'bottom-right'
+                    });
+                    startDownload({
+                        Url: this.Url,
+                        Name: this.Name,
+                        Video: this.VideoList.Checked,
+                        Audio: this.AudioList.Checked,
+                        Merge: this.Merge
+                    }, this.downloadClickCallback)
+                    this.VideoList.Checked = this.AudioList.Checked = ""
+                }
+
+            },
+            downloadClickCallback(obj) {
+                if (obj.err) {
+                    this.fullscreenLoading = false;
+                    this.$notify.error({
+                        title: '错误',
+                        message: obj.err,
+                        position: 'bottom-right'
+                    });
+                } else {
+                    this.fullscreenLoading = false;
+                    this.$notify({
+                        title: '成功',
+                        message: '下载完成！',
+                        type: 'success',
+                        position: 'bottom-right'
+                    });
+                }
+            },
+            selectClickCallback(obj) {
+                if (obj.err) {
+                    this.fullscreenLoading = false;
+                    this.$notify.error({
+                        title: '错误',
+                        message: obj.err,
+                        position: 'bottom-right'
+                    });
+                } else {
+                    this.fullscreenLoading = false;
+                    this.$notify({
+                        title: '完成',
+                        message: '选择目标后直接下载即可',
+                        type: 'success',
+                        position: 'bottom-right'
+                    });
+                    var allTemp = obj.data.split('\n').slice(2, -1);
+                    var videoTemp = [];
+                    var audioTemp = [];
+                    allTemp.forEach((str, index) => {
+                        var tempArr = str.split('');
+                        let tempStr = '';
+                        tempArr.splice(13, 0, ',');
+                        tempArr.splice(25, 0, ',');
+                        tempArr.splice(37, 0, ',');
+                        tempArr.splice(43, 0, ',');
+                        tempArr.forEach((char) => {
+                            tempStr = tempStr + char;
+                        })
+                        if (tempStr.indexOf("audio only") != -1) {
+                            audioTemp.push(tempStr)
+                        } else {
+                            videoTemp.push(tempStr)
+                        }
+                    })
+                    audioTemp.forEach((str, index) => {
+                        var tempArr = str.split(',');
+                        var tempObj = {};
+                        tempArr.forEach((str, index) => {
+                            switch (index) {
+                                case 0:
+                                    tempObj.code = str.trim()
+                                    break;
+                                case 1:
+                                    tempObj.format = str.trim()
+                                    break;
+                                case 4:
+                                    tempObj.rate = str.trim()
+                                    break;
+                                case 6:
+                                    tempObj.hz = str.trim()
+                                    break;
+                                case 7:
+                                    tempObj.size = str.trim()
+                                    break;
+                                default:
+                                    break;
+                            }
+                        })
+                        audioTemp[index] = tempObj;
+                    })
+                    videoTemp.forEach((str, index) => {
+                        var tempArr = str.split(',');
+                        var tempObj = {};
+                        tempArr.forEach((str, index) => {
+                            switch (index) {
+                                case 0:
+                                    tempObj.code = str.trim()
+                                    break;
+                                case 1:
+                                    tempObj.format = str.trim()
+                                    break;
+                                case 2:
+                                    tempObj.resolution = str.trim()
+                                    break;
+                                case 4:
+                                    tempObj.rate = str.trim()
+                                    break;
+                                case 7:
+                                    tempObj.fps = str.trim()
+                                    break;
+                                case 9:
+                                    tempObj.size = str.trim()
+                                    break;
+                                default:
+                                    break;
+                            }
+                        })
+                        if (str.indexOf("video only") != -1) {
+                            videoTemp[index] = tempObj;
+                        } else {
+                            videoTemp.splice(index, 1)
+                        }
+                    })
+                    this.AudioList.List = audioTemp;
+                    this.VideoList.List = videoTemp;
+                }
+            },
+            chageConfigOpen() {
+                this.ProxyUrl = readJson('ProxyUrl');
+                this.dialogFormVisible = true;
+            },
+            chageConfig() {
+                if (this.ProxyUrl.length != 0) {
+                    reg = /[a-zA-z]+:\/\/[^\\s]*/;
+                    if (!reg.test(this.ProxyUrl)) {
+                        this.$notify.error({
+                            title: '错误',
+                            message: '请正确填写地址。',
+                            position: 'bottom-right'
+                        });
+                        return
+                    } else {
+                        ['ProxyUrl', 'Save'].forEach(element => {
+                            changeJson(element, this[element])
+                        });
+                        this.dialogFormVisible = false;
+                    }
+                }
+            },
+            videoHandleCurrentChange(val) {
+                this.VideoList.Checked = val.code
+                this.mergeIsChange()
+            },
+            audioHandleCurrentChange(val) {
+                this.AudioList.Checked = val.code
+                this.mergeIsChange()
+            },
+            mergeIsChange() {
+                if (this.VideoList.Checked && this.AudioList.Checked) {
+                    this.MergeIs = false
+                } else {
+                    this.MergeIs = true
+                }
+            }
+        }
+    })
+</script>
+
+</html>
