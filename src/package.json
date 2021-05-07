@@ -1,0 +1,13 @@
+{
+  "name": "U2bdl-GUI",
+  "main": "index.html",
+  "window": {
+    "title": "U2bdl-GUI",
+    "toolbar": false,
+    "position": "center",
+    "width": 1000,
+    "height": 800
+  },
+  "version": "1.0.0",
+  "description": "GUI for youtube_dl"
+}
